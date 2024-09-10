@@ -5,7 +5,4 @@ def main():
     print(textnode)
 
 
-
-
-
 main()
