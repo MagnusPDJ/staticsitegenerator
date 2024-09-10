@@ -203,8 +203,6 @@ class TestHTMLNode(unittest.TestCase):
             node.to_html(),
             '<body><p><a href="https://www.google.com">Click me!</a></p><p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p></body>'
         )
-
-    
     
     def test_no_child(self):
         node = ParentNode(
@@ -213,6 +211,6 @@ class TestHTMLNode(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             node.to_html()
-        
+
 if __name__ == "__main__":
     unittest.main()
