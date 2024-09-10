@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestHTMLNode(unittest.TestCase):
     def test0(self):
@@ -130,6 +130,89 @@ class TestHTMLNode(unittest.TestCase):
             node.to_html(),
             '<a href="https://www.google.com">Click me!</a>'
         )
+    
+    def test_block(self):
+        node = ParentNode(
+            "p",
+            [
+                LeafNode("b", "Bold text"),
+                LeafNode(None, "Normal text"),
+                LeafNode("i", "italic text"),
+                LeafNode(None, "Normal text"),
+            ],
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>"
+        )
+    
+    def test_block1(self):
+        node = ParentNode(
+            "body",
+            [
+                ParentNode(
+                    "p",
+                    [
+                        LeafNode("b", "Bold text"),
+                        LeafNode(None, "Normal text"),
+                        LeafNode("i", "italic text"),
+                        LeafNode(None, "Normal text"),
+                    ]
 
+                ),
+                ParentNode(
+                    "p",
+                    [
+                        LeafNode("b", "Bold text"),
+                        LeafNode(None, "Normal text"),
+                        LeafNode("i", "italic text"),
+                        LeafNode(None, "Normal text"),
+                    ]
+
+                ),
+            ],
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<body><p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p><p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p></body>"
+        )
+
+    def test_block2(self):
+        node = ParentNode(
+            "body",
+            [
+                ParentNode(
+                    "p",
+                    [
+                        LeafNode("a", "Click me!", {"href": "https://www.google.com"})
+                    ]
+                ),
+                ParentNode(
+                    "p",
+                    [
+                        LeafNode("b", "Bold text"),
+                        LeafNode(None, "Normal text"),
+                        LeafNode("i", "italic text"),
+                        LeafNode(None, "Normal text"),
+                    ]
+
+                ),
+            ],
+        )
+        self.assertEqual(
+            node.to_html(),
+            '<body><p><a href="https://www.google.com">Click me!</a></p><p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p></body>'
+        )
+
+    
+    
+    def test_no_child(self):
+        node = ParentNode(
+            "p",
+            None,
+        )
+        with self.assertRaises(ValueError):
+            node.to_html()
+        
 if __name__ == "__main__":
     unittest.main()
