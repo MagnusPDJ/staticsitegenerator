@@ -1,7 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode
-
+from htmlnode import HTMLNode, LeafNode
 
 class TestHTMLNode(unittest.TestCase):
     def test0(self):
@@ -29,13 +28,16 @@ class TestHTMLNode(unittest.TestCase):
         )
 
     def test2(self):
-        node = HTMLNode("p","this is a test",None,{
-        "href": "https://www.google.com", 
-        "target": "_blank",
-        }   
+        node = HTMLNode(
+            "p",
+            "this is a test",
+            None,
+            {"href": "https://www.google.com", "target": "_blank"}   
         )
-        test = 'href="https://www.google.com"target="_blank"'
-        self.assertNotEqual(node.props_to_html(), test)
+        self.assertNotEqual(
+            node.props_to_html(), 
+            'href="https://www.google.com"target="_blank"'
+        )
 
     def test3(self):
         node = HTMLNode(
@@ -69,6 +71,64 @@ class TestHTMLNode(unittest.TestCase):
         self.assertEqual(
             node.props,
             None,
+        )
+    
+    def test_none(self):
+        node = LeafNode(
+            None,
+            "Hello, world!"
+        )
+        self.assertEqual(node.to_html(), "Hello, world!")
+
+    def test_paragraph(self):
+        node = LeafNode(
+            "p",
+            "This is a paragraph of text."
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<p>This is a paragraph of text.</p>"
+        )
+
+    def test_bold(self):
+        node = LeafNode(
+            "b",
+            "This is a paragraph of text."
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<b>This is a paragraph of text.</b>"
+        )
+
+    def test_italic(self):
+        node = LeafNode(
+            "i",
+            "This is a paragraph of text."
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<i>This is a paragraph of text.</i>"
+        )
+
+    def test_code(self):
+        node = LeafNode(
+            "code",
+            "This is a paragraph of text."
+        )
+        self.assertEqual(
+            node.to_html(),
+            "<code>This is a paragraph of text.</code>"
+        )
+
+    def test_link(self):
+        node = LeafNode(
+            "a",
+            "Click me!",
+            {"href": "https://www.google.com"}
+        )
+        self.assertEqual(
+            node.to_html(),
+            '<a href="https://www.google.com">Click me!</a>'
         )
 
 if __name__ == "__main__":
