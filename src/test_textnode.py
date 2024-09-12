@@ -6,7 +6,12 @@ from textnode import (
     TextNode, 
     TextType, 
     text_node_to_html_node,
-    split_nodes_delimiter
+    split_nodes_delimiter,
+    extract_markdown_images,
+    extract_markdown_links,
+    split_nodes_image,
+    split_nodes_link,
+    text_to_textnodes
 )
 
 class TestTextNode(unittest.TestCase):
@@ -117,6 +122,54 @@ class TestTextNode(unittest.TestCase):
             parent.to_html(),
             "<p>This <b>is</b> a <i>test to see</i> if my <code>code</code> works.</p>"
         )
+    
+    def test_extract_images(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        self.assertEqual(
+            extract_markdown_images(text),
+            [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+        )
 
+    def test_extract_links(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        self.assertEqual(
+            extract_markdown_links(text),
+            [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")]
+        )
+    
+    def test_extract_empty(self):
+        text = "This is text with a link ![to boot dev](https://www.boot.dev) and ![to youtube](https://www.youtube.com/@bootdotdev)"
+        self.assertEqual(
+            extract_markdown_links(text),
+            []
+        )
+
+    def test_textnode_images(self):
+        text = [TextNode(
+            "This a text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg) as a funny meme.",
+            "text"
+        )]
+        self.assertEqual(
+            str(split_nodes_image(text)),
+            "[TextNode(This a text with a , text, None), TextNode(rick roll, image, https://i.imgur.com/aKaOqIh.gif), TextNode( and , text, None), TextNode(obi wan, image, https://i.imgur.com/fJRm4Vk.jpeg), TextNode( as a funny meme., text, None)]"
+        )
+
+    def test_textnode_links(self):
+        text = [TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+            "text"
+        )]
+        self.assertEqual(
+            str(split_nodes_link(text)),
+            "[TextNode(This is text with a link , text, None), TextNode(to boot dev, link, https://www.boot.dev), TextNode( and , text, None), TextNode(to youtube, link, https://www.youtube.com/@bootdotdev)]"
+        )
+
+    def test_text_to_textnode(self):
+        text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        textnodes = text_to_textnodes(text)
+        self.assertEqual(
+            str(textnodes),
+            "[TextNode(This is , text, None), TextNode(text, bold, None), TextNode( with an , text, None), TextNode(italic, italic, None), TextNode( word and a , text, None), TextNode(code block, code, None), TextNode( and an , text, None), TextNode(obi wan image, image, https://i.imgur.com/fJRm4Vk.jpeg), TextNode( and a , text, None), TextNode(link, link, https://boot.dev)]"
+        )
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,6 @@
 from enum import Enum
 from htmlnode import LeafNode
+import re
 
 class TextType(Enum):
     text_type_text = "text"
@@ -59,3 +60,77 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 nodes.append(TextNode(slices[i], text_type))
         new_nodes.extend(nodes)
     return new_nodes
+
+def extract_markdown_images(text):
+    return re.findall( r"!\[(.*?)\]\((.*?)\)", text)
+
+def extract_markdown_links(text):
+    return re.findall( r"(?<!!)\[(.*?)\]\((.*?)\)", text)
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != "text":
+            new_nodes.append(old_node)
+            continue
+        nodes = []
+        text_to_slice = old_node.text
+        images = extract_markdown_images(old_node.text)
+        images_count = len(images)
+        if images_count == 0:
+            new_nodes.append(old_node)
+            continue            
+        for i in range(images_count):
+            slices = text_to_slice.split(f"![{images[i][0]}]({images[i][1]})", 1)
+            if len(slices) != 2:
+                raise ValueError("Invalid Markdown syntax, image is not closed")
+            if  slices[0] == "":
+                nodes.append(TextNode(images[i][0], "image", images[i][1]))
+                text_to_slice = slices[1]
+                continue
+            nodes.append(TextNode(slices[0], "text"))
+            nodes.append(TextNode(images[i][0], "image", images[i][1]))
+            text_to_slice = slices[1]
+        if text_to_slice != "":
+            nodes.append(TextNode(text_to_slice, "text"))
+        new_nodes.extend(nodes)    
+        return new_nodes
+
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for old_node in old_nodes:
+        if old_node.text_type != "text":
+            new_nodes.append(old_node)
+            continue
+        nodes = []
+        text_to_slice = old_node.text
+        links = extract_markdown_links(old_node.text)
+        links_count = len(links)
+        if links_count == 0:
+            new_nodes.append(old_node)
+            continue 
+        for i in range(links_count):
+            slices = text_to_slice.split(f"[{links[i][0]}]({links[i][1]})", 1)
+            if len(slices) != 2:
+                raise ValueError("Invalid Markdown syntax, link is not closed")
+            if  slices[0] == "":
+                nodes.append(TextNode(links[i][0], "link", links[i][1]))
+                text_to_slice = slices[1]
+                continue
+            nodes.append(TextNode(slices[0], "text"))
+            nodes.append(TextNode(links[i][0], "link", links[i][1]))
+            text_to_slice = slices[1]
+        if text_to_slice != "":
+            nodes.append(TextNode(text_to_slice, "text"))
+        new_nodes.extend(nodes)    
+        return new_nodes
+
+def text_to_textnodes(text):
+    text_to_split = [TextNode(text, "text")]
+    textnodes = split_nodes_image(text_to_split)
+    textnodes = split_nodes_link(textnodes)
+    textnodes = split_nodes_delimiter(textnodes, "**", "bold")
+    textnodes = split_nodes_delimiter(textnodes, "*", "italic")
+    textnodes = split_nodes_delimiter(textnodes, "`", "code")
+    return textnodes
