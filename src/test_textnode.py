@@ -98,7 +98,6 @@ class TestTextNode(unittest.TestCase):
     def test_splitting3(self):
         nodes = [TextNode("`This is` a test to see if my code `works.`", "text")]
         new_nodes = split_nodes_delimiter(nodes, "`", "code")
-        print(new_nodes)
         self.assertEqual(
             str(new_nodes),
             "[TextNode(This is, code, None), TextNode( a test to see if my code , text, None), TextNode(works., code, None)]"
