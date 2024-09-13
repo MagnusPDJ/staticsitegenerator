@@ -131,6 +131,53 @@ def text_to_textnodes(text):
     textnodes = split_nodes_image(text_to_split)
     textnodes = split_nodes_link(textnodes)
     textnodes = split_nodes_delimiter(textnodes, "**", "bold")
-    textnodes = split_nodes_delimiter(textnodes, "*", "italic")
     textnodes = split_nodes_delimiter(textnodes, "`", "code")
+    textnodes = split_nodes_delimiter(textnodes, "*", "italic")
     return textnodes
+
+def markdown_to_blocks(markdown):
+    block_list = []
+    split_markdown = markdown.split("\n\n")
+    for split in split_markdown:
+        if split == "":
+            continue
+        block_list.append(split.strip())
+    
+    return block_list
+
+def block_to_block_type(block):
+    lines = block.split("\n")
+    if (
+        block.startswith("######")
+        or block.startswith("#####")
+        or block.startswith("####")
+        or block.startswith("###")
+        or block.startswith("##")
+        or block.startswith("#")
+    ):
+        return "heading"
+    if len(lines) > 2 and block[:3] =="```" and block[-3:] == "```":
+        return "code"   
+    if block[:1] == ">":
+        for line in lines:
+            if line[:1] != ">":
+                return "paragraph"
+        return "quote"
+    if block[:2] == "* ":
+        for line in lines:
+            if line[:2] != "* ":
+                return "paragraph"
+        return "unordered_list"
+    if block[:2] == "- ":
+        for line in lines:
+            if line[:2] != "- ":
+                return "paragraph"
+        return "unordered_list"
+    if block[:3] == "1. ":
+        i = 1
+        for line in lines:
+            if line[:3] != f"{i}. ":
+                return "paragraph"
+            i += 1
+        return "ordered_list"
+    return "paragraph"
